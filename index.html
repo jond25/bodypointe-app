@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BodyPointe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #FBFBF9; font-family: sans-serif; }
+        .organic-green { background-color: #2D5A27; }
+        .vitality-gold { color: #D4AF37; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border-radius: 20px; }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- Top Header -->
+    <header class="p-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold organic-green-text tracking-tight" style="color: #2D5A27;">BodyPointe<span class="vitality-gold">.</span></h1>
+        <div class="h-8 w-8 organic-green rounded-full flex items-center justify-center">
+            <span class="text-white text-xs">AI</span>
+        </div>
+    </header>
+
+    <!-- Main 3D Twin Area (Placeholder for now) -->
+    <main class="flex-grow flex items-center justify-center relative">
+        <div class="text-center">
+            <!-- This will be your 3D Digital Twin later -->
+            <div class="w-64 h-96 bg-gray-200 rounded-3xl animate-pulse flex items-center justify-center border-4 border-dashed border-gray-300">
+                <p class="text-gray-400 italic">3D Twin Loading...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Chat Interaction Area -->
+    <section class="p-6 pb-12">
+        <div class="glass p-6 shadow-xl border border-white">
+            <p class="text-gray-800 text-lg leading-relaxed">
+                "Hey friend! I'm your <span class="font-bold" style="color: #2D5A27;">BodyPointe</span> guide. Tap the map where it hurts, or just tell me how you're feeling."
+            </p>
+            <div class="mt-4 flex gap-2">
+                <button class="px-6 py-3 organic-green text-white rounded-full text-sm font-semibold shadow-lg">Tap Map</button>
+                <button class="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-full text-sm font-semibold">Soul Sync</button>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
