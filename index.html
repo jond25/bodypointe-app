@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>BodyPointe</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
         :root {
-            --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
             --organic-green: #2D5A27;
             --vitality-gold: #D4AF37;
@@ -20,30 +16,30 @@
         body { 
             background: #FBFBF9;
             margin: 0;
-            padding-top: var(--safe-top);
-            padding-bottom: var(--safe-bottom);
+            display: flex;
+            flex-direction: column;
+            min-height: 100dvh; /* Dynamic height to handle mobile bars */
             font-family: -apple-system, system-ui, sans-serif;
             overflow-x: hidden;
         }
 
-        /* The Digital Twin Rendering */
-        .twin-container {
-            position: relative;
-            width: 100%;
-            height: 60vh; /* Takes up most of the top screen */
+        /* 1. Body Map Container - No Overlap */
+        .map-section {
+            flex: 1; /* Takes up all available top space */
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            padding-top: 20px;
+            z-index: 1;
         }
 
         .body-part { 
             fill: url(#3d-skin); 
             stroke: #ffffff; 
             stroke-width: 1.5; 
-            transition: 0.3s;
-            pointer-events: all; /* Explicitly tell iPhone to allow touches */
-            -webkit-tap-highlight-color: transparent;
+            transition: 0.2s;
+            cursor: pointer;
+            pointer-events: auto; /* Forces the browser to listen here */
         }
 
         .pain-active { 
@@ -51,15 +47,13 @@
             filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.6));
         }
 
-        /* Content Area */
-        .content-area {
-            padding: 2rem 1.5rem;
+        /* 2. Interaction Section - Below the Map */
+        .chat-section {
             background: white;
             border-radius: 40px 40px 0 0;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
-            min-height: 40vh;
-            position: relative;
-            z-index: 20;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.05);
+            padding: 30px 24px calc(var(--safe-bottom) + 30px);
+            z-index: 10;
         }
 
         #camera-feed {
@@ -67,60 +61,54 @@
             border-radius: 24px;
             display: none;
             background: #000;
-            margin-bottom: 1rem;
+            margin-bottom: 20px;
         }
 
         .btn {
             width: 100%;
-            padding: 1.25rem;
-            border-radius: 1rem;
-            font-weight: 700;
+            padding: 18px;
+            border-radius: 18px;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-size: 0.75rem;
-            margin-bottom: 0.75rem;
+            font-size: 12px;
+            margin-bottom: 12px;
             transition: transform 0.1s;
         }
-        .btn:active { transform: scale(0.98); }
+        .btn:active { transform: scale(0.96); }
     </style>
 </head>
 <body>
 
-    <!-- SVG Shading Definitions -->
+    <!-- 3D Gradients -->
     <svg style="width:0;height:0;position:absolute;">
         <defs>
             <radialGradient id="3d-skin" cx="50%" cy="50%" r="60%" fx="35%" fy="35%">
-                <stop offset="0%" stop-color="#ffffff" />
-                <stop offset="100%" stop-color="#cbd5e1" />
+                <stop offset="0%" stop-color="#ffffff" /><stop offset="100%" stop-color="#cbd5e1" />
             </radialGradient>
             <radialGradient id="3d-pain" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#fca5a5" />
-                <stop offset="100%" stop-color="#ef4444" />
+                <stop offset="0%" stop-color="#fca5a5" /><stop offset="100%" stop-color="#ef4444" />
             </radialGradient>
         </defs>
     </svg>
 
-    <header class="px-8 pt-4 pb-2 flex justify-between items-center">
+    <header class="px-8 pt-12 flex justify-between items-center">
         <h1 class="text-2xl font-black" style="color: var(--organic-green);">BodyPointe<span style="color: var(--vitality-gold);">.</span></h1>
         <div class="text-2xl">🦉</div>
     </header>
 
-    <!-- 1. The Digital Twin Space -->
-    <div class="twin-container">
-        <svg viewBox="0 0 240 520" style="height: 95%; width: auto;">
-            <!-- Head -->
+    <!-- The Map Section -->
+    <div class="map-section">
+        <svg viewBox="0 0 240 520" style="height: 100%; width: auto; max-height: 50vh;">
             <path id="head" class="body-part" d="M120,20 c15,0 25,12 25,28 c0,15 -10,28 -25,28 s-25,-13 -25,-28 c0,-16 10,-28 25,-28" />
-            <!-- Torso -->
             <path id="chest" class="body-part" d="M90,85 Q120,80 150,85 L155,160 Q120,170 85,160 Z" />
             <path id="stomach" class="body-part" d="M85,165 Q120,175 155,165 L160,240 Q120,255 80,240 Z" />
-            <!-- Arms -->
             <path id="arm_r_up" class="body-part" d="M155,95 L185,170 L165,175 L145,100 Z" />
             <path id="arm_r_low" class="body-part" d="M188,175 L210,250 L190,255 L168,180 Z" />
             <path id="hand_r" class="body-part" d="M212,255 Q220,280 200,285 L190,260 Z" />
             <path id="arm_l_up" class="body-part" d="M85,95 L55,170 L75,175 L95,100 Z" />
             <path id="arm_l_low" class="body-part" d="M52,175 L30,250 L50,255 L72,180 Z" />
             <path id="hand_l" class="body-part" d="M28,255 Q20,280 40,285 L50,260 Z" />
-            <!-- Legs -->
             <path id="leg_r_up" class="body-part" d="M125,250 L150,380 L115,380 L105,255 Z" />
             <path id="leg_r_low" class="body-part" d="M148,390 L135,500 L110,500 L115,390 Z" />
             <path id="foot_r" class="body-part" d="M135,505 L155,518 L110,518 L110,505 Z" />
@@ -130,28 +118,27 @@
         </svg>
     </div>
 
-    <!-- 2. Interaction Area -->
-    <div class="content-area">
+    <!-- The Interaction Section -->
+    <div class="chat-section">
         <video id="camera-feed" autoplay playsinline></video>
-        <p id="chat-bubble" class="text-2xl font-bold text-gray-900 leading-tight mb-6">
-            "Hello. Tap an <span style="color: var(--organic-green)">area</span> on your Twin."
+        <p id="chat-bubble" class="text-2xl font-bold text-gray-900 leading-tight mb-8">
+            "Hi. Tap a <span style="color: var(--organic-green)">precise area</span> on your Digital Twin."
         </p>
 
         <div id="btn-group" class="hidden">
-            <button onclick="openCamera()" class="btn text-white" style="background: var(--organic-green);">Insight Lens (Scan)</button>
-            <button onclick="soulSync()" class="btn bg-white border border-gray-200 text-gray-600">Soul Sync (Mood)</button>
+            <button onpointerdown="openCamera()" class="btn text-white" style="background: var(--organic-green);">Insight Lens (Scan)</button>
+            <button onpointerdown="soulSync()" class="btn bg-white border border-gray-200 text-gray-600">Soul Sync (Mood)</button>
         </div>
 
-        <div id="remedy-area" class="mt-6 hidden pt-6 border-t border-gray-100">
-            <h3 class="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-4">Protocol</h3>
+        <div id="remedy-area" class="mt-4 hidden pt-4 border-t border-gray-100">
             <div id="remedy-list" class="space-y-3"></div>
         </div>
     </div>
 
     <script>
-        // SUPABASE BACKBONE
-        const supabaseUrl = 'YOUR_SUPABASE_URL'; 
-        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        // Supabase Init
+        const supabaseUrl = 'https://ikknnhihubuswwaqszuf.supabase.co'; 
+        const supabaseKey = 'sb_publishable_vMFpYk2SoggPiE_00AYmeA_lw4iCksU';
         const supabase = supabasejs.createClient(supabaseUrl, supabaseKey);
 
         let selectedId = "";
@@ -161,26 +148,26 @@
             "stomach": ["Advanced: Ashwagandha Tea", "Kitchen: Peppermint Steam", "Exercise: Deep Breathing"]
         };
 
-        // NEW ROBUST SELECTION LOGIC
+        // ROBUST POINTER DOWN LOGIC
         document.querySelectorAll('.body-part').forEach(part => {
-            part.addEventListener('touchstart', (e) => {
+            part.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
                 const id = e.target.id;
-                const name = id.replace(/_/g, ' ');
                 
-                // Visual Update
+                // Visual Reset
                 document.querySelectorAll('.body-part').forEach(p => p.classList.remove('pain-active'));
                 e.target.classList.add('pain-active');
                 
-                // Chat Update
+                // Update State
                 selectedId = id;
-                document.getElementById('chat-bubble').innerHTML = `"Focusing on your <span style='color:var(--organic-green)'>${name}</span>. What triggered this?"`;
+                document.getElementById('chat-bubble').innerHTML = `"Focusing on the <span style='color:var(--organic-green)'>${id.replace(/_/g, ' ')}</span>. What triggered this?"`;
                 document.getElementById('btn-group').classList.remove('hidden');
                 
-                // Show Remedies
+                // Show Protocol
                 const list = document.getElementById('remedy-list');
                 const area = document.getElementById('remedy-area');
                 list.innerHTML = "";
-                const items = remedyData[id] || ["Rest", "Hydration", "Gentle Stretch"];
+                const items = remedyData[id] || ["Rest and Hydration", "Gentle Stretching"];
                 items.forEach(text => {
                     const d = document.createElement('div');
                     d.className = "p-4 bg-gray-50 rounded-xl border border-gray-100 text-sm font-bold text-gray-700";
@@ -189,29 +176,26 @@
                 });
                 area.classList.remove('hidden');
 
-                // Haptic
                 if (navigator.vibrate) navigator.vibrate(20);
             });
         });
 
-        // CAMERA (INSIGHT LENS)
         async function openCamera() {
             const v = document.getElementById('camera-feed');
             try {
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 v.srcObject = s;
                 v.style.display = 'block';
-                document.getElementById('chat-bubble').innerText = '"Analyzing area... hold still."';
-            } catch (err) { alert("Camera access denied."); }
+                document.getElementById('chat-bubble').innerText = '"Analyzing area... stay still."';
+            } catch (err) { alert("Camera denied."); }
         }
 
-        // DATABASE (SOUL SYNC)
         async function soulSync() {
             const m = prompt("Mood (1-10)?");
             const t = prompt("Trigger?");
+            if(!m || !t) return;
             const { error } = await supabase.from('healing_logs').insert([{ body_part: selectedId, mood: m, trigger_text: t }]);
-            if (error) alert("Error saving.");
-            else alert("Saved to your private vault!");
+            alert(error ? "Sync Error" : "Saved to Vault!");
         }
     </script>
 </body>
