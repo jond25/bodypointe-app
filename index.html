@@ -2,74 +2,135 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>BodyPointe</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #FBFBF9; font-family: sans-serif; transition: all 0.5s ease; }
-        .organic-green { background-color: #2D5A27; }
-        .vitality-gold { color: #D4AF37; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-radius: 24px; }
-        /* Style for the body parts */
-        .body-part { fill: #E5E7EB; stroke: #fff; stroke-width: 2; transition: all 0.3s; cursor: pointer; }
-        .body-part:active { fill: #D4AF37; }
-        .pain-glow { fill: #ff4d4d; filter: drop-shadow(0 0 8px rgba(255,77,77,0.8)); }
+        :root {
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+        body { 
+            background: radial-gradient(circle at top, #ffffff, #f3f4f6);
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Make the body parts look rounded/3D */
+        .body-part { 
+            fill: url(#grad-neutral); 
+            stroke: rgba(255,255,255,0.5); 
+            stroke-width: 1; 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+        .pain-active { 
+            fill: url(#grad-pain) !important;
+            filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.6)) !important;
+        }
+        .glass { 
+            background: rgba(255, 255, 255, 0.75); 
+            backdrop-filter: blur(15px); 
+            border-top: 1px solid rgba(255,255,255,0.8);
+            /* This lifts the box ABOVE the iPhone home bar */
+            padding-bottom: calc(var(--safe-bottom) + 2rem); 
+        }
+        .avatar-glow {
+            box-shadow: 0 0 20px rgba(45, 90, 39, 0.3);
+        }
     </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden">
+<body class="overflow-hidden">
 
-    <header class="p-6 flex justify-between items-center">
-        <h1 class="text-2xl font-bold tracking-tight" style="color: #2D5A27;">BodyPointe<span class="vitality-gold">.</span></h1>
-        <div id="soul-aura" class="h-4 w-4 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]"></div>
+    <!-- Definitions for 3D Gradients -->
+    <svg style="width:0;height:0;position:absolute;">
+        <defs>
+            <radialGradient id="grad-neutral" cx="50%" cy="50%" r="50%" fx="25%" fy="25%">
+                <stop offset="0%" style="stop-color:#ffffff" />
+                <stop offset="100%" style="stop-color:#d1d5db" />
+            </radialGradient>
+            <radialGradient id="grad-pain" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" style="stop-color:#fca5a5" />
+                <stop offset="100%" style="stop-color:#ef4444" />
+            </radialGradient>
+        </defs>
+    </svg>
+
+    <!-- Header -->
+    <header class="px-6 pt-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tighter" style="color: #2D5A27;">BodyPointe<span style="color:#D4AF37;">.</span></h1>
+            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Identity Studio Active</p>
+        </div>
+        <div class="h-10 w-10 rounded-full border-2 border-white avatar-glow flex items-center justify-center bg-gray-100 overflow-hidden">
+            <!-- Friend Avatar Placeholder -->
+            <span class="text-lg">🦉</span>
+        </div>
     </header>
 
-    <main class="flex-grow flex items-center justify-center p-4">
-        <!-- Interactive Digital Twin (SVG) -->
-        <svg viewBox="0 0 200 500" class="h-full w-auto">
+    <!-- 3D Twin Viewport -->
+    <main class="flex-grow flex items-center justify-center relative py-4">
+        <svg viewBox="0 0 200 500" class="h-full w-auto drop-shadow-2xl">
             <!-- Head -->
-            <circle id="head" class="body-part" cx="100" cy="50" r="30" onclick="selectPart('head', 'I see you tapped your head. Are we looking at a headache or Tech Neck?')"/>
+            <path id="head" class="body-part" d="M100,20 c15,0 25,10 25,25 s-10,25 -25,25 s-25,-10 -25,-25 s10,-25 25,-25" onclick="selectPart('head', 'I see tension in your head. Is it a headache or pressure?')"/>
             <!-- Torso -->
-            <path id="torso" class="body-part" d="M70,85 L130,85 L140,250 L60,250 Z" onclick="selectPart('torso', 'Tension in the torso? Is it muscle soreness or does it feel deeper?')"/>
+            <path id="torso" class="body-part" d="M75,75 Q100,70 125,75 L135,220 Q100,230 65,220 Z" onclick="selectPart('torso', 'Checking your torso. Does the discomfort feel deep or on the surface?')"/>
             <!-- Right Arm -->
-            <path id="arm_right" class="body-part" d="M135,90 L160,230 L180,225 L155,85 Z" onclick="selectPart('arm_right', 'Checking the right arm. Is it that itchy spot we discussed?')"/>
+            <path id="arm_r" class="body-part" d="M130,85 L170,210 L155,215 L125,95 Z" onclick="selectPart('arm_r', 'Your right arm. Is it that itchy spot or a muscle strain?')"/>
             <!-- Left Arm -->
-            <path id="arm_left" class="body-part" d="M65,90 L40,230 L20,225 L45,85 Z" onclick="selectPart('arm_left', 'Looking at the left arm. Any pain or skin irritation here?')"/>
+            <path id="arm_l" class="body-part" d="M70,85 L30,210 L45,215 L75,95 Z" onclick="selectPart('arm_l', 'Your left arm. Show me where it hurts.')"/>
             <!-- Legs -->
-            <path id="legs" class="body-part" d="M65,255 L85,450 L115,450 L135,255 Z" onclick="selectPart('legs', 'Leg stiffness? Let me know if it is the joints or the muscles.')"/>
+            <path id="legs" class="body-part" d="M70,230 Q100,240 130,230 L140,460 L110,465 L100,300 L90,465 L60,460 Z" onclick="selectPart('legs', 'Legs feeling heavy? Are we looking at joints or muscles?')"/>
         </svg>
     </main>
 
-    <!-- Chat Interaction Area -->
-    <section class="p-6 pb-12">
-        <div class="glass p-6 shadow-2xl border border-white">
-            <p id="chat-bubble" class="text-gray-800 text-lg leading-tight italic">
-                "Hi! I'm your BodyPointe guide. Tap the map where it hurts to begin."
+    <!-- Interactive Chat Drawer -->
+    <section class="glass rounded-t-[40px] px-8 pt-8 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <div class="max-w-md mx-auto">
+            <div class="flex items-center gap-3 mb-4">
+                <div id="aura" class="h-2 w-2 rounded-full bg-green-400 animate-ping"></div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Guide Online</p>
+            </div>
+            
+            <p id="chat-text" class="text-gray-800 text-xl font-medium leading-snug">
+                "Hi friend. Take a moment to <span style="color:#2D5A27;">tap the area</span> where you're feeling discomfort."
             </p>
-            <div id="action-buttons" class="mt-4 flex gap-2 hidden">
-                <button onclick="alert('Opening Insight Lens...')" class="px-5 py-3 organic-green text-white rounded-full text-xs font-bold shadow-lg uppercase tracking-widest">Scan Spot</button>
-                <button onclick="alert('Soul Sync: Mood tracking...')" class="px-5 py-3 bg-white border border-gray-200 text-gray-700 rounded-full text-xs font-bold uppercase tracking-widest">Soul Sync</button>
+
+            <div id="controls" class="mt-8 flex flex-col gap-3 opacity-0 translate-y-4 transition-all duration-500">
+                <button onclick="handleAction('scan')" class="w-full py-4 rounded-2xl text-white font-bold tracking-wide shadow-lg transition-transform active:scale-95" style="background-color: #2D5A27;">
+                    INSIGHT LENS (SCAN)
+                </button>
+                <button onclick="handleAction('soul')" class="w-full py-4 rounded-2xl bg-white border border-gray-200 text-gray-700 font-bold tracking-wide shadow-sm active:scale-95">
+                    SOUL SYNC (MOOD)
+                </button>
             </div>
         </div>
     </section>
 
     <script>
-        function selectPart(id, message) {
-            // Reset all parts
-            document.querySelectorAll('.body-part').forEach(p => p.classList.remove('pain-glow'));
+        function selectPart(id, msg) {
+            // Remove active state from all
+            document.querySelectorAll('.body-part').forEach(p => p.classList.remove('pain-active'));
             
-            // Highlight selected part
-            document.getElementById(id).classList.add('pain-glow');
+            // Activate selected
+            document.getElementById(id).classList.add('pain-active');
             
-            // Update Chat
-            document.getElementById('chat-bubble').innerText = '"' + message + '"';
+            // Update Text
+            document.getElementById('chat-text').innerHTML = `"${msg}"`;
             
-            // Show buttons
-            document.getElementById('action-buttons').classList.remove('hidden');
+            // Reveal Controls
+            const controls = document.getElementById('controls');
+            controls.classList.remove('opacity-0', 'translate-y-4');
+            
+            // Haptic
+            if (navigator.vibrate) navigator.vibrate(20);
+        }
 
-            // Haptic Feedback (if supported)
-            if (window.navigator.vibrate) {
-                window.navigator.vibrate([10, 30, 10]);
-            }
+        function handleAction(type) {
+            if(type === 'scan') alert('Insight Lens: Point your camera at the scabby spot.');
+            if(type === 'soul') alert('Soul Sync: How is your heart feeling today?');
         }
     </script>
 </body>
