@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>BodyPointe</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --safe-bottom: env(safe-area-inset-bottom); --organic-green: #2D5A27; --vitality-gold: #D4AF37; }
-        body { background: #FBFBF9; min-height: 100vh; margin: 0; padding-bottom: calc(var(--safe-bottom) + 2rem); }
-        .body-part { fill: url(#3d-skin); stroke: #ffffff; stroke-width: 1.5; transition: all 0.3s ease; cursor: pointer; }
-        .pain-active { fill: url(#3d-pain) !important; filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.5)); }
-        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-radius: 32px; border: 1px solid #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        #camera-feed { width: 100%; height: 300px; object-fit: cover; border-radius: 20px; display: none; background: #000; }
+        body { background: #FBFBF9; min-height: 100vh; margin: 0; padding-bottom: calc(var(--safe-bottom) + 5rem); -webkit-overflow-scrolling: touch; }
+        .body-part { fill: url(#3d-skin); stroke: #ffffff; stroke-width: 1.2; transition: all 0.3s ease; cursor: pointer; }
+        .pain-active { fill: #ef4444 !important; fill: url(#3d-pain) !important; filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.5)); }
+        .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border-radius: 32px; border: 1px solid #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        #camera-feed { width: 100%; border-radius: 20px; display: none; background: #000; margin-bottom: 20px; }
     </style>
 </head>
 <body class="px-6">
@@ -26,27 +25,41 @@
         <div class="h-10 w-10 rounded-full bg-white shadow-sm flex items-center justify-center border border-gray-100 text-xl">🦉</div>
     </header>
 
+    <!-- 2. The Digital Twin (Full Anatomy Restored) -->
     <section class="flex justify-center py-4">
-        <svg viewBox="0 0 240 520" class="w-full max-w-[300px] h-auto">
+        <svg viewBox="0 0 240 520" class="w-full max-w-[320px] h-auto">
             <defs>
-                <radialGradient id="3d-skin" cx="50%" cy="50%" r="60%" fx="35%" fy="35%"><stop offset="0%" stop-color="#ffffff" /><stop offset="100%" stop-color="#cbd5e1" /></radialGradient>
-                <radialGradient id="3d-pain" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fca5a5" /><stop offset="100%" stop-color="#ef4444" /></radialGradient>
+                <radialGradient id="3d-skin" cx="50%" cy="50%" r="60%" fx="35%" fy="35%">
+                    <stop offset="0%" stop-color="#ffffff" /><stop offset="100%" stop-color="#cbd5e1" />
+                </radialGradient>
+                <radialGradient id="3d-pain" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#fca5a5" /><stop offset="100%" stop-color="#ef4444" />
+                </radialGradient>
             </defs>
-            <!-- Head, Torso, Arms, Legs (Abbreviated for space, same paths as before) -->
+
             <path id="head" class="body-part" d="M120,20 c15,0 25,12 25,28 c0,15 -10,28 -25,28 s-25,-13 -25,-28 c0,-16 10,-28 25,-28" onclick="selectPart('head')"/>
-            <path id="arm_r_low" class="body-part" d="M188,175 L210,250 L190,255 L168,180 Z" onclick="selectPart('arm_r_low')"/>
+            <path id="chest" class="body-part" d="M90,85 Q120,80 150,85 L155,160 Q120,170 85,160 Z" onclick="selectPart('chest')"/>
             <path id="stomach" class="body-part" d="M85,165 Q120,175 155,165 L160,240 Q120,255 80,240 Z" onclick="selectPart('stomach')"/>
+            <path id="arm_r_up" class="body-part" d="M155,95 L185,170 L165,175 L145,100 Z" onclick="selectPart('arm_r_up')"/>
+            <path id="arm_r_low" class="body-part" d="M188,175 L210,250 L190,255 L168,180 Z" onclick="selectPart('arm_r_low')"/>
+            <path id="hand_r" class="body-part" d="M212,255 Q220,280 200,285 L190,260 Z" onclick="selectPart('hand_r')"/>
+            <path id="arm_l_up" class="body-part" d="M85,95 L55,170 L75,175 L95,100 Z" onclick="selectPart('arm_l_up')"/>
+            <path id="arm_l_low" class="body-part" d="M52,175 L30,250 L50,255 L72,180 Z" onclick="selectPart('arm_l_low')"/>
+            <path id="hand_l" class="body-part" d="M28,255 Q20,280 40,285 L50,260 Z" onclick="selectPart('hand_l')"/>
+            <path id="leg_r_up" class="body-part" d="M125,250 L150,380 L115,380 L105,255 Z" onclick="selectPart('leg_r_up')"/>
             <path id="leg_r_low" class="body-part" d="M148,390 L135,500 L110,500 L115,390 Z" onclick="selectPart('leg_r_low')"/>
+            <path id="foot_r" class="body-part" d="M135,505 L155,518 L110,518 L110,505 Z" onclick="selectPart('foot_r')"/>
+            <path id="leg_l_up" class="body-part" d="M115,250 L90,380 L125,380 L135,255 Z" onclick="selectPart('leg_l_up')"/>
+            <path id="leg_l_low" class="body-part" d="M92,390 L105,500 L130,500 L125,390 Z" onclick="selectPart('leg_l_low')"/>
+            <path id="foot_l" class="body-part" d="M105,505 L85,518 L130,518 L130,505 Z" onclick="selectPart('foot_l')"/>
         </svg>
     </section>
 
+    <!-- 3. Interaction Section -->
     <section id="interaction" class="mt-4 mb-20">
         <div class="glass-card p-8">
             <video id="camera-feed" autoplay playsinline></video>
-            
-            <p id="chat-bubble" class="text-2xl font-bold text-gray-900 leading-tight mb-8">
-                "Hi. Tap a part of your Digital Twin to begin."
-            </p>
+            <p id="chat-bubble" class="text-2xl font-bold text-gray-900 leading-tight mb-8">"Hi. Tap a part of your Digital Twin to begin."</p>
 
             <div id="btn-group" class="hidden flex flex-col gap-4">
                 <button onclick="openCamera()" class="w-full py-5 rounded-2xl text-white font-bold text-sm tracking-widest shadow-xl" style="background: var(--organic-green);">INSIGHT LENS (SCAN)</button>
@@ -58,31 +71,32 @@
                 <div id="remedy-list" class="flex flex-col gap-3 text-gray-700 font-medium"></div>
             </div>
         </div>
-        <p class="text-[10px] text-center mt-6 text-gray-400 px-4 italic">Disclaimer: Not medical advice. Seek a professional for serious symptoms.</p>
     </section>
 
     <script>
-        // INITIALIZE SUPABASE
-        const supabaseUrl = 'https://ikknnhihubuswwaqszuf.supabase.co'; 
-        const supabaseKey = 'sb_publishable_vMFpYk2SoggPiE_00AYmeA_lw4iCksU';
+        // REPLACE THESE WITH YOUR ACTUAL KEYS
+        const supabaseUrl = 'YOUR_SUPABASE_URL'; 
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
         const supabase = supabasejs.createClient(supabaseUrl, supabaseKey);
 
         let selectedPart = "";
 
         const remedies = {
-            "arm_r_low": ["Advanced: Manuka Honey (UMF 15+)", "Kitchen: Apple Cider Vinegar Soak", "Exercise: Lymphatic Pumping"],
             "head": ["Advanced: Magnesium Oil", "Kitchen: Warm Salt Sock", "Exercise: Chin Tucks"],
-            "stomach": ["Advanced: Ashwagandha Tea", "Kitchen: Peppermint Steam", "Exercise: Abdominal Breathing"]
+            "chest": ["Advanced: Eucalyptus Oil", "Kitchen: Thyme Steam", "Exercise: Doorway Stretch"],
+            "stomach": ["Advanced: Ashwagandha Tea", "Kitchen: Peppermint Steam", "Exercise: Abdominal Breathing"],
+            "arm_r_low": ["Advanced: Manuka Honey", "Kitchen: ACV Soak", "Exercise: Lymph Pumping"],
+            "leg_r_low": ["Advanced: Arnica Gel", "Kitchen: Epsom Soak", "Exercise: Ankle Pumps"]
         };
 
         function selectPart(id) {
             selectedPart = id;
             document.querySelectorAll('.body-part').forEach(p => p.classList.remove('pain-active'));
             document.getElementById(id).classList.add('pain-active');
-            
-            document.getElementById('chat-bubble').innerText = '"I see the discomfort there. What triggered this?"';
+            document.getElementById('chat-bubble').innerText = '"I see the discomfort in your ' + id.replace('_', ' ') + '. What triggered this?"';
             document.getElementById('btn-group').classList.remove('hidden');
             showRemedies(id);
+            document.getElementById('interaction').scrollIntoView({ behavior: 'smooth' });
         }
 
         async function openCamera() {
@@ -92,30 +106,22 @@
                 video.srcObject = stream;
                 video.style.display = 'block';
                 document.getElementById('chat-bubble').innerText = '"Scanning for patterns... stay still."';
-            } catch (err) {
-                alert("Camera access denied. Check your settings!");
-            }
+            } catch (err) { alert("Please allow camera access in your settings!"); }
         }
 
         async function soulSync() {
             const mood = prompt("On a scale of 1-10, how is your heart feeling today?");
-            const trigger = prompt("What triggered this pain? (e.g., Work stress, hiking)");
-            
-            // SAVE TO SUPABASE (The Backbone)
-            const { data, error } = await supabase.from('healing_logs').insert([
-                { body_part: selectedPart, mood: mood, trigger_text: trigger }
-            ]);
-
-            if (error) console.log(error);
-            else alert("Your progress is saved to your private vault.");
+            const trigger = prompt("What triggered this? (e.g. Work, workout, stress)");
+            const { data, error } = await supabase.from('healing_logs').insert([{ body_part: selectedPart, mood: mood, trigger_text: trigger }]);
+            if (error) { alert("Error saving: " + error.message); } 
+            else { alert("Progress saved to your private vault!"); }
         }
 
         function showRemedies(id) {
             const list = document.getElementById('remedy-list');
             const area = document.getElementById('remedy-area');
             list.innerHTML = "";
-            const suggestions = remedies[id] || ["Rest and hydration", "Gentle movement"];
-            
+            const suggestions = remedies[id] || ["Rest and hydration", "Gentle stretching"];
             suggestions.forEach(item => {
                 const div = document.createElement('div');
                 div.className = "p-3 bg-gray-50 rounded-lg border border-gray-100";
