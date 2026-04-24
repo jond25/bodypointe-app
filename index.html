@@ -6,44 +6,71 @@
     <title>BodyPointe</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #FBFBF9; font-family: sans-serif; }
+        body { background-color: #FBFBF9; font-family: sans-serif; transition: all 0.5s ease; }
         .organic-green { background-color: #2D5A27; }
         .vitality-gold { color: #D4AF37; }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border-radius: 20px; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-radius: 24px; }
+        /* Style for the body parts */
+        .body-part { fill: #E5E7EB; stroke: #fff; stroke-width: 2; transition: all 0.3s; cursor: pointer; }
+        .body-part:active { fill: #D4AF37; }
+        .pain-glow { fill: #ff4d4d; filter: drop-shadow(0 0 8px rgba(255,77,77,0.8)); }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- Top Header -->
     <header class="p-6 flex justify-between items-center">
-        <h1 class="text-2xl font-bold organic-green-text tracking-tight" style="color: #2D5A27;">BodyPointe<span class="vitality-gold">.</span></h1>
-        <div class="h-8 w-8 organic-green rounded-full flex items-center justify-center">
-            <span class="text-white text-xs">AI</span>
-        </div>
+        <h1 class="text-2xl font-bold tracking-tight" style="color: #2D5A27;">BodyPointe<span class="vitality-gold">.</span></h1>
+        <div id="soul-aura" class="h-4 w-4 bg-green-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]"></div>
     </header>
 
-    <!-- Main 3D Twin Area (Placeholder for now) -->
-    <main class="flex-grow flex items-center justify-center relative">
-        <div class="text-center">
-            <!-- This will be your 3D Digital Twin later -->
-            <div class="w-64 h-96 bg-gray-200 rounded-3xl animate-pulse flex items-center justify-center border-4 border-dashed border-gray-300">
-                <p class="text-gray-400 italic">3D Twin Loading...</p>
-            </div>
-        </div>
+    <main class="flex-grow flex items-center justify-center p-4">
+        <!-- Interactive Digital Twin (SVG) -->
+        <svg viewBox="0 0 200 500" class="h-full w-auto">
+            <!-- Head -->
+            <circle id="head" class="body-part" cx="100" cy="50" r="30" onclick="selectPart('head', 'I see you tapped your head. Are we looking at a headache or Tech Neck?')"/>
+            <!-- Torso -->
+            <path id="torso" class="body-part" d="M70,85 L130,85 L140,250 L60,250 Z" onclick="selectPart('torso', 'Tension in the torso? Is it muscle soreness or does it feel deeper?')"/>
+            <!-- Right Arm -->
+            <path id="arm_right" class="body-part" d="M135,90 L160,230 L180,225 L155,85 Z" onclick="selectPart('arm_right', 'Checking the right arm. Is it that itchy spot we discussed?')"/>
+            <!-- Left Arm -->
+            <path id="arm_left" class="body-part" d="M65,90 L40,230 L20,225 L45,85 Z" onclick="selectPart('arm_left', 'Looking at the left arm. Any pain or skin irritation here?')"/>
+            <!-- Legs -->
+            <path id="legs" class="body-part" d="M65,255 L85,450 L115,450 L135,255 Z" onclick="selectPart('legs', 'Leg stiffness? Let me know if it is the joints or the muscles.')"/>
+        </svg>
     </main>
 
     <!-- Chat Interaction Area -->
     <section class="p-6 pb-12">
-        <div class="glass p-6 shadow-xl border border-white">
-            <p class="text-gray-800 text-lg leading-relaxed">
-                "Hey friend! I'm your <span class="font-bold" style="color: #2D5A27;">BodyPointe</span> guide. Tap the map where it hurts, or just tell me how you're feeling."
+        <div class="glass p-6 shadow-2xl border border-white">
+            <p id="chat-bubble" class="text-gray-800 text-lg leading-tight italic">
+                "Hi! I'm your BodyPointe guide. Tap the map where it hurts to begin."
             </p>
-            <div class="mt-4 flex gap-2">
-                <button class="px-6 py-3 organic-green text-white rounded-full text-sm font-semibold shadow-lg">Tap Map</button>
-                <button class="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-full text-sm font-semibold">Soul Sync</button>
+            <div id="action-buttons" class="mt-4 flex gap-2 hidden">
+                <button onclick="alert('Opening Insight Lens...')" class="px-5 py-3 organic-green text-white rounded-full text-xs font-bold shadow-lg uppercase tracking-widest">Scan Spot</button>
+                <button onclick="alert('Soul Sync: Mood tracking...')" class="px-5 py-3 bg-white border border-gray-200 text-gray-700 rounded-full text-xs font-bold uppercase tracking-widest">Soul Sync</button>
             </div>
         </div>
     </section>
 
+    <script>
+        function selectPart(id, message) {
+            // Reset all parts
+            document.querySelectorAll('.body-part').forEach(p => p.classList.remove('pain-glow'));
+            
+            // Highlight selected part
+            document.getElementById(id).classList.add('pain-glow');
+            
+            // Update Chat
+            document.getElementById('chat-bubble').innerText = '"' + message + '"';
+            
+            // Show buttons
+            document.getElementById('action-buttons').classList.remove('hidden');
+
+            // Haptic Feedback (if supported)
+            if (window.navigator.vibrate) {
+                window.navigator.vibrate([10, 30, 10]);
+            }
+        }
+    </script>
 </body>
 </html>
