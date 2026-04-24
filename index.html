@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
+            --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
             --organic-green: #2D5A27;
             --vitality-gold: #D4AF37;
@@ -15,172 +16,137 @@
         body { 
             background: #FBFBF9;
             margin: 0;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
-            height: 100dvh;
+            overflow: hidden; /* Prevents accidental scrolling */
             font-family: -apple-system, system-ui, sans-serif;
-            overflow: hidden;
         }
-        /* The Map Container */
-        .map-section {
+        /* Top Section: Body Map only */
+        #map-container {
             flex: 1;
+            width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
-            min-height: 0; /* Important for flex-shrink */
+            padding-top: var(--safe-top);
+            z-index: 5; /* Lower layer */
         }
-        /* Body Part Styling - Solid Fallback added */
         .body-part { 
-            fill: #d1d5db; /* Solid grey fallback */
+            fill: #d1d5db; 
             fill: url(#3d-skin); 
             stroke: #ffffff; 
             stroke-width: 1.5; 
-            transition: 0.2s;
             cursor: pointer;
-            pointer-events: auto;
             -webkit-tap-highlight-color: transparent;
+            pointer-events: auto !important; /* Forces interaction */
         }
-        .pain-active { 
-            fill: #ef4444 !important; /* Solid red fallback */
-            fill: url(#3d-pain) !important; 
-            filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.6));
+        .active { 
+            fill: #ef4444 !important; 
+            fill: url(#3d-pain) !important;
+            filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5));
         }
-        /* Chat Drawer */
-        .chat-section {
+        /* Bottom Section: Interaction only */
+        #interaction-container {
             background: white;
-            border-radius: 40px 40px 0 0;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.05);
-            padding: 32px 24px calc(var(--safe-bottom) + 20px);
-            z-index: 50;
-        }
-        #camera-feed {
-            width: 100%;
-            border-radius: 24px;
-            display: none;
-            background: #000;
-            margin-bottom: 20px;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
+            padding: 24px 24px calc(var(--safe-bottom) + 20px);
+            z-index: 10; /* Higher layer */
         }
         .btn {
             width: 100%;
-            padding: 18px;
-            border-radius: 18px;
+            padding: 16px;
+            border-radius: 14px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 1px;
             font-size: 11px;
-            margin-bottom: 12px;
-            transition: transform 0.1s;
+            margin-bottom: 10px;
         }
-        .btn:active { transform: scale(0.96); }
     </style>
 </head>
 <body>
 
-    <header class="px-8 pt-10 flex justify-between items-center">
-        <h1 class="text-2xl font-black" style="color: var(--organic-green);">BodyPointe<span style="color: var(--vitality-gold);">.</span></h1>
-        <div class="text-2xl">🦉</div>
-    </header>
-
-    <!-- The Map Section -->
-    <div class="map-section">
-        <svg viewBox="0 0 240 520" style="height: 100%; width: auto; max-width: 100%;">
-            <!-- Gradients moved INSIDE the SVG for Safari stability -->
+    <!-- 1. The Map (Top Half) -->
+    <div id="map-container">
+        <svg viewBox="0 0 240 520" style="height: 90%; width: auto;">
             <defs>
                 <radialGradient id="3d-skin" cx="50%" cy="50%" r="60%" fx="35%" fy="35%">
-                    <stop offset="0%" stop-color="#ffffff" />
-                    <stop offset="100%" stop-color="#cbd5e1" />
+                    <stop offset="0%" stop-color="#ffffff" /><stop offset="100%" stop-color="#cbd5e1" />
                 </radialGradient>
                 <radialGradient id="3d-pain" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="#fca5a5" />
-                    <stop offset="100%" stop-color="#ef4444" />
+                    <stop offset="0%" stop-color="#fca5a5" /><stop offset="100%" stop-color="#ef4444" />
                 </radialGradient>
             </defs>
 
-            <!-- All Body Paths -->
-            <path id="head" class="body-part" d="M120,20 c15,0 25,12 25,28 c0,15 -10,28 -25,28 s-25,-13 -25,-28 c0,-16 10,-28 25,-28" />
-            <path id="chest" class="body-part" d="M90,85 Q120,80 150,85 L155,160 Q120,170 85,160 Z" />
-            <path id="stomach" class="body-part" d="M85,165 Q120,175 155,165 L160,240 Q120,255 80,240 Z" />
+            <!-- Anatomical Paths with direct 'onpointerdown' for instant mobile response -->
+            <path id="head" class="body-part" onpointerdown="handleSelect(this, 'Head & Neck')" d="M120,20 c15,0 25,12 25,28 c0,15 -10,28 -25,28 s-25,-13 -25,-28 c0,-16 10,-28 25,-28" />
+            <path id="chest" class="body-part" onpointerdown="handleSelect(this, 'Chest')" d="M90,85 Q120,80 150,85 L155,160 Q120,170 85,160 Z" />
+            <path id="stomach" class="body-part" onpointerdown="handleSelect(this, 'Stomach')" d="M85,165 Q120,175 155,165 L160,240 Q120,255 80,240 Z" />
             
-            <path id="arm_r_up" class="body-part" d="M155,95 L185,170 L165,175 L145,100 Z" />
-            <path id="arm_r_low" class="body-part" d="M188,175 L210,250 L190,255 L168,180 Z" />
-            <path id="hand_r" class="body-part" d="M212,255 Q220,280 200,285 L190,260 Z" />
+            <path id="arm_r_up" class="body-part" onpointerdown="handleSelect(this, 'Right Arm')" d="M155,95 L185,170 L165,175 L145,100 Z" />
+            <path id="arm_r_low" class="body-part" onpointerdown="handleSelect(this, 'Right Forearm')" d="M188,175 L210,250 L190,255 L168,180 Z" />
+            <path id="hand_r" class="body-part" onpointerdown="handleSelect(this, 'Right Hand')" d="M212,255 Q220,280 200,285 L190,260 Z" />
             
-            <path id="arm_l_up" class="body-part" d="M85,95 L55,170 L75,175 L95,100 Z" />
-            <path id="arm_l_low" class="body-part" d="M52,175 L30,250 L50,255 L72,180 Z" />
-            <path id="hand_l" class="body-part" d="M28,255 Q20,280 40,285 L50,260 Z" />
+            <path id="arm_l_up" class="body-part" onpointerdown="handleSelect(this, 'Left Arm')" d="M85,95 L55,170 L75,175 L95,100 Z" />
+            <path id="arm_l_low" class="body-part" onpointerdown="handleSelect(this, 'Left Forearm')" d="M52,175 L30,250 L50,255 L72,180 Z" />
+            <path id="hand_l" class="body-part" onpointerdown="handleSelect(this, 'Left Hand')" d="M28,255 Q20,280 40,285 L50,260 Z" />
             
-            <path id="leg_r_up" class="body-part" d="M125,250 L150,380 L115,380 L105,255 Z" />
-            <path id="leg_r_low" class="body-part" d="M148,390 L135,500 L110,500 L115,390 Z" />
-            <path id="foot_r" class="body-part" d="M135,505 L155,518 L110,518 L110,505 Z" />
+            <path id="leg_r_up" class="body-part" onpointerdown="handleSelect(this, 'Right Thigh')" d="M125,250 L150,380 L115,380 L105,255 Z" />
+            <path id="leg_r_low" class="body-part" onpointerdown="handleSelect(this, 'Right Leg')" d="M148,390 L135,500 L110,500 L115,390 Z" />
+            <path id="foot_r" class="body-part" onpointerdown="handleSelect(this, 'Right Foot')" d="M135,505 L155,518 L110,518 L110,505 Z" />
             
-            <path id="leg_l_up" class="body-part" d="M115,250 L90,380 L125,380 L135,255 Z" />
-            <path id="leg_l_low" class="body-part" d="M92,390 L105,500 L130,500 L125,390 Z" />
-            <path id="foot_l" class="body-part" d="M105,505 L85,518 L130,518 L130,505 Z" />
+            <path id="leg_l_up" class="body-part" onpointerdown="handleSelect(this, 'Left Thigh')" d="M115,250 L90,380 L125,380 L135,255 Z" />
+            <path id="leg_l_low" class="body-part" onpointerdown="handleSelect(this, 'Left Leg')" d="M92,390 L105,500 L130,500 L125,390 Z" />
+            <path id="foot_l" class="body-part" onpointerdown="handleSelect(this, 'Left Foot')" d="M105,505 L85,518 L130,518 L130,505 Z" />
         </svg>
     </div>
 
-    <!-- Interaction Drawer -->
-    <div class="chat-section">
-        <video id="camera-feed" autoplay playsinline></video>
-        <p id="chat-bubble" class="text-2xl font-bold text-gray-900 leading-tight mb-8">
-            "Hi. Tap a <span style="color: var(--organic-green)">precise area</span> on your Digital Twin."
+    <!-- 2. The Chat (Bottom Half) -->
+    <div id="interaction-container">
+        <video id="camera-feed" autoplay playsinline style="width:100%; display:none; border-radius:20px; margin-bottom:15px; background:black;"></video>
+        
+        <p id="chat-bubble" class="text-xl font-bold text-gray-900 leading-tight mb-6">
+            "Hello. <span style="color: var(--organic-green)">Tap an area</span> on your Digital Twin."
         </p>
 
-        <div id="btn-group" class="hidden">
+        <div id="btn-group" style="display:none;">
             <button onclick="openCamera()" class="btn text-white" style="background: var(--organic-green);">Insight Lens (Scan)</button>
-            <button onclick="soulSync()" class="btn bg-white border border-gray-100 text-gray-600">Soul Sync (Mood)</button>
-        </div>
-
-        <div id="remedy-area" class="mt-4 hidden pt-4 border-t border-gray-100">
-            <div id="remedy-list" class="space-y-2"></div>
+            <button onclick="soulSync()" class="btn bg-white border border-gray-200 text-gray-600">Soul Sync (Mood)</button>
+            
+            <div id="remedies" class="mt-4 pt-4 border-t border-gray-100 text-sm font-bold text-gray-500">
+                <!-- Remedies appear here -->
+            </div>
         </div>
     </div>
 
     <script>
-        // Supabase Initialization
+        // BACKBONE INIT
         const supabaseUrl = 'https://ikknnhihubuswwaqszuf.supabase.co'; 
         const supabaseKey = 'sb_publishable_vMFpYk2SoggPiE_00AYmeA_lw4iCksU';
         const supabase = supabasejs.createClient(supabaseUrl, supabaseKey);
 
         let selectedId = "";
         const remedyData = {
-            "head": ["Advanced: Magnesium Oil", "Kitchen: Warm Salt Sock", "Exercise: Chin Tucks"],
-            "arm_r_low": ["Advanced: Manuka Honey", "Kitchen: ACV Soak", "Exercise: Lymph Pumping"],
-            "stomach": ["Advanced: Ashwagandha Tea", "Kitchen: Peppermint Steam", "Exercise: Deep Breathing"]
+            "head": "Protocol: Magnesium Oil & Chin Tucks",
+            "arm_r_low": "Protocol: Manuka Honey & ACV Soak",
+            "stomach": "Protocol: Peppermint Tea & Deep Breath",
+            "chest": "Protocol: Doorway Stretch & Eucalyptus"
         };
 
-        // Tap Logic - Uses 'click' for broadest compatibility
-        document.querySelectorAll('.body-part').forEach(part => {
-            part.addEventListener('click', (e) => {
-                const id = e.currentTarget.id;
-                
-                // Visual Highlight
-                document.querySelectorAll('.body-part').forEach(p => p.classList.remove('pain-active'));
-                e.currentTarget.classList.add('pain-active');
-                
-                // Chat Update
-                selectedId = id;
-                const name = id.replace(/_/g, ' ');
-                document.getElementById('chat-bubble').innerHTML = `"Focusing on the <span style='color:var(--organic-green)'>${name}</span>. What triggered this?"`;
-                document.getElementById('btn-group').classList.remove('hidden');
-                
-                // Protocol List
-                const list = document.getElementById('remedy-list');
-                const area = document.getElementById('remedy-area');
-                list.innerHTML = "";
-                const items = remedyData[id] || ["Rest and Hydration", "Gentle Stretching"];
-                items.forEach(text => {
-                    const d = document.createElement('div');
-                    d.className = "p-4 bg-gray-50 rounded-xl border border-gray-100 text-sm font-bold text-gray-700";
-                    d.innerText = text;
-                    list.appendChild(d);
-                });
-                area.classList.remove('hidden');
+        function handleSelect(element, name) {
+            // Instant visual feedback
+            document.querySelectorAll('.body-part').forEach(p => p.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Update State
+            selectedId = element.id;
+            document.getElementById('chat-bubble').innerHTML = `"I've highlighted your <span style='color:var(--organic-green)'>${name}</span>. What's the plan?"`;
+            document.getElementById('btn-group').style.display = 'block';
+            document.getElementById('remedies').innerText = remedyData[selectedId] || "Protocol: Rest, Ice, and Hydration";
 
-                if (navigator.vibrate) navigator.vibrate(20);
-            });
-        });
+            if (navigator.vibrate) navigator.vibrate(20);
+        }
 
         async function openCamera() {
             const v = document.getElementById('camera-feed');
@@ -188,16 +154,16 @@
                 const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 v.srcObject = s;
                 v.style.display = 'block';
-                document.getElementById('chat-bubble').innerText = '"Insight Lens Active. Scanning area..."';
-            } catch (err) { alert("Please allow camera access in your browser settings."); }
+                document.getElementById('chat-bubble').innerText = '"Scanning... keep the area in view."';
+            } catch (e) { alert("Camera denied."); }
         }
 
         async function soulSync() {
-            const m = prompt("On a scale of 1-10, how is your heart feeling today?");
-            const t = prompt("What triggered this pain?");
-            if(!m || !t) return;
+            const m = prompt("Mood (1-10)?");
+            const t = prompt("Trigger?");
+            if(!m) return;
             const { error } = await supabase.from('healing_logs').insert([{ body_part: selectedId, mood: m, trigger_text: t }]);
-            alert(error ? "Sync failed" : "Saved to your private vault!");
+            alert(error ? "Sync Error" : "Saved to Vault!");
         }
     </script>
 </body>
